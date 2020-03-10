@@ -409,10 +409,6 @@ def evaluate(args, model, tokenizer, prefix=""):
 
 
 def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=False):
-    if args.local_rank not in [-1, 0] and not evaluate:
-        # Make sure only the first process in distributed training process the dataset, and the others will use the cache
-        torch.distributed.barrier()
-
     # Load data features from cache or dataset file
     input_dir = args.data_dir if args.data_dir else "."
     cached_features_file = os.path.join(
@@ -427,7 +423,9 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
     # Init features and dataset from cache if it exists
     if os.path.exists(cached_features_file) and not args.overwrite_cache:
         logger.info("Loading features from cached file %s", cached_features_file)
+        logger.info("start load")
         features_and_dataset = torch.load(cached_features_file)
+        logger.info("end load")
         features, dataset, examples = (
             features_and_dataset["features"],
             features_and_dataset["dataset"],
