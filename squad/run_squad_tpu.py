@@ -252,7 +252,7 @@ def train(args, train_dataset, model, tokenizer):
                 if args.local_rank in [-1, 0] and args.save_steps > 0 and global_step % args.save_steps == 0:
                     output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
                     if not tf.gfile.Exists(output_dir):
-                        os.makedirs(output_dir)
+                        tf.gfile.MakeDirs(output_dir)
                     # Take care of distributed/parallel training
                     model_to_save = model.module if hasattr(model, "module") else model
                     model_to_save.save_pretrained(output_dir)
@@ -282,7 +282,7 @@ def evaluate(args, model, tokenizer, prefix=""):
     dataset, examples, features = load_and_cache_examples(args, tokenizer, evaluate=True, output_examples=True)
 
     if not tf.gfile.Exists(args.output_dir) and args.local_rank in [-1, 0]:
-        os.makedirs(args.output_dir)
+        tf.gfile.MakeDirs(args.output_dir)
 
     args.eval_batch_size = args.per_gpu_eval_batch_size * 8
 
@@ -522,7 +522,7 @@ def map_fn(index, args):
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
         # Create output directory if needed
         if not tf.gfile.Exists(args.output_dir) and args.local_rank in [-1, 0]:
-            os.makedirs(args.output_dir)
+            tf.gfile.MakeDirs(args.output_dir)
 
         logger.info("Saving model checkpoint to %s", args.output_dir)
         # Save a trained model, configuration and tokenizer using `save_pretrained()`.
@@ -728,7 +728,7 @@ def main():
 
     if (
             tf.gfile.Exists(args.output_dir)
-            and os.listdir(args.output_dir)
+            and tf.gfile.ListDirectory(args.output_dir)
             and args.do_train
             and not args.overwrite_output_dir
     ):
