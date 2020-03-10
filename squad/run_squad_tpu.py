@@ -420,6 +420,11 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
         ),
     )
 
+    train_dataset_file = os.path.join(input_dir, "train_dataset")
+    if not evaluate and not output_examples and os.path.exists(train_dataset_file):
+        train_dataset = torch.load(train_dataset_file)
+        return train_dataset
+
     # Init features and dataset from cache if it exists
     if os.path.exists(cached_features_file) and not args.overwrite_cache:
         logger.info("Loading features from cached file %s", cached_features_file)
