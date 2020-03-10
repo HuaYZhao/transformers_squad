@@ -22,7 +22,6 @@ import os
 import random
 import timeit
 
-import tensorflow as tf
 import numpy as np
 import torch
 import torch_xla
@@ -161,7 +160,7 @@ def train(args, train_dataset, model, tokenizer):
     epochs_trained = 0
     steps_trained_in_current_epoch = 0
     # Check if continuing training from a checkpoint
-    if tf.gfile.Exists(args.model_name_or_path):
+    if os.path.exists(args.model_name_or_path):
         try:
             # set global_step to gobal_step of last saved checkpoint from model path
             checkpoint_suffix = args.model_name_or_path.split("-")[-1].split("/")[0]
@@ -251,8 +250,8 @@ def train(args, train_dataset, model, tokenizer):
                 # Save model checkpoint
                 if args.local_rank in [-1, 0] and args.save_steps > 0 and global_step % args.save_steps == 0:
                     output_dir = os.path.join(args.output_dir, "checkpoint-{}".format(global_step))
-                    if not tf.gfile.Exists(output_dir):
-                        tf.gfile.MakeDirs(output_dir)
+                    if not os.path.exists(output_dir):
+                        os.makedirs(output_dir)
                     # Take care of distributed/parallel training
                     model_to_save = model.module if hasattr(model, "module") else model
                     model_to_save.save_pretrained(output_dir)
@@ -281,8 +280,8 @@ def train(args, train_dataset, model, tokenizer):
 def evaluate(args, model, tokenizer, prefix=""):
     dataset, examples, features = load_and_cache_examples(args, tokenizer, evaluate=True, output_examples=True)
 
-    if not tf.gfile.Exists(args.output_dir) and args.local_rank in [-1, 0]:
-        tf.gfile.MakeDirs(args.output_dir)
+    if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
+        os.makedirs(args.output_dir)
 
     args.eval_batch_size = args.per_gpu_eval_batch_size * 8
 
@@ -426,7 +425,7 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
     )
 
     # Init features and dataset from cache if it exists
-    if tf.gfile.Exists(cached_features_file) and not args.overwrite_cache:
+    if os.path.exists(cached_features_file) and not args.overwrite_cache:
         logger.info("Loading features from cached file %s", cached_features_file)
         features_and_dataset = torch.load(cached_features_file)
         features, dataset, examples = (
@@ -521,8 +520,8 @@ def map_fn(index, args):
     # Save the trained model and the tokenizer
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
         # Create output directory if needed
-        if not tf.gfile.Exists(args.output_dir) and args.local_rank in [-1, 0]:
-            tf.gfile.MakeDirs(args.output_dir)
+        if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
+            os.makedirs(args.output_dir)
 
         logger.info("Saving model checkpoint to %s", args.output_dir)
         # Save a trained model, configuration and tokenizer using `save_pretrained()`.
@@ -727,8 +726,8 @@ def main():
         )
 
     if (
-            tf.gfile.Exists(args.output_dir)
-            and tf.gfile.ListDirectory(args.output_dir)
+            os.path.exists(args.output_dir)
+            and os.listdir(args.output_dir)
             and args.do_train
             and not args.overwrite_output_dir
     ):
