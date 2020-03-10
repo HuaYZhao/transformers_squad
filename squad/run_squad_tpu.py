@@ -107,7 +107,7 @@ def train(args, train_dataset, model, tokenizer):
     if args.local_rank in [-1, 0]:
         tb_writer = SummaryWriter()
 
-    args.train_batch_size = args.per_gpu_train_batch_size * 8
+    args.train_batch_size = args.per_gpu_train_batch_size
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_dataset,
         num_replicas=xm.xrt_world_size(),
@@ -514,6 +514,7 @@ def map_fn(index, args):
     # Training
     if args.do_train:
         train_dataset = load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=False)
+        logger.info(" data load finished! ")
         global_step, tr_loss = train(args, train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
